@@ -1,0 +1,11 @@
+.venv/
+**/__pycache__/
+*.py[cod]
+.env
+backend/.env
+frontend/node_modules/
+frontend/dist/
+readonly-source-review/
+repository-readonly-review.zip
+backend/media/
+*.log

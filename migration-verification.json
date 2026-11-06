@@ -1,0 +1,98 @@
+{
+  "source": "community_scanner_legacy",
+  "target": "community_scanner_dev",
+  "tables": {
+    "admins": {
+      "source_rows": 1,
+      "target_rows": 1,
+      "match": true
+    },
+    "approval_history": {
+      "source_rows": 0,
+      "target_rows": 0,
+      "match": true
+    },
+    "audit_logs": {
+      "source_rows": 254,
+      "target_rows": 254,
+      "match": true
+    },
+    "authorities": {
+      "source_rows": 27,
+      "target_rows": 27,
+      "match": true
+    },
+    "community_members": {
+      "source_rows": 11,
+      "target_rows": 11,
+      "match": true
+    },
+    "congregation_combined_passes": {
+      "source_rows": 987,
+      "target_rows": 987,
+      "match": true
+    },
+    "entry_logs": {
+      "source_rows": 61,
+      "target_rows": 61,
+      "match": true
+    },
+    "gates": {
+      "source_rows": 2,
+      "target_rows": 2,
+      "match": true
+    },
+    "hod_passes": {
+      "source_rows": 482,
+      "target_rows": 482,
+      "match": true
+    },
+    "immediate_passes": {
+      "source_rows": 5,
+      "target_rows": 5,
+      "match": true
+    },
+    "profile_edit_requests": {
+      "source_rows": 0,
+      "target_rows": 0,
+      "match": true
+    },
+    "qr_tokens": {
+      "source_rows": 11,
+      "target_rows": 11,
+      "match": true
+    },
+    "scanners": {
+      "source_rows": 4,
+      "target_rows": 4,
+      "match": true
+    },
+    "volunteer_pass_batches": {
+      "source_rows": 7,
+      "target_rows": 7,
+      "match": true
+    },
+    "volunteer_passes": {
+      "source_rows": 152,
+      "target_rows": 152,
+      "match": true
+    },
+    "volunteers": {
+      "source_rows": 0,
+      "target_rows": 0,
+      "match": true
+    },
+    "vvip_batches": {
+      "source_rows": 0,
+      "target_rows": 0,
+      "match": true
+    },
+    "vvip_passes": {
+      "source_rows": 0,
+      "target_rows": 0,
+      "match": true
+    }
+  },
+  "all_rows_match": true,
+  "all_imported_passwords_hashed": true
+}

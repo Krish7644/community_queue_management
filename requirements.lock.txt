@@ -1,0 +1,12 @@
+﻿asgiref==3.13.0
+colorama==0.4.6
+Django==5.2.19
+djangorestframework==3.18.3
+et_xmlfile==2.0.0
+mysqlclient==2.3.0
+openpyxl==3.1.5
+pillow==13.0.0
+python-dotenv==1.2.4
+qrcode==8.2
+sqlparse==0.6.1
+tzdata==2026.6
