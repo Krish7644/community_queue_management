@@ -410,7 +410,8 @@ def card(request, kind, pk):
     if not record:
         raise NotFound()
     thumb = request.query_params.get("thumb") == "1"
-    path = render_card(kind, record, thumb=thumb)
+    as_png = request.query_params.get("format") == "png"
+    path = render_card(kind, record, thumb=thumb, as_png=as_png)
     download = request.query_params.get("download") == "1"
     ctype = "image/webp" if path.suffix == ".webp" else "image/png"
     filename = services.code_for(record) + path.suffix
@@ -611,7 +612,8 @@ def download_bundle(request):
             record = services.owned_passes(request.user, kind).filter(pk=selected.get("id")).first()
             if not record:
                 raise NotFound("A selected pass is unavailable.")
-            archive.write(render_card(kind, record), services.code_for(record) + ".png")
+            card_file = render_card(kind, record)
+            archive.write(card_file, services.code_for(record) + card_file.suffix)
     response = HttpResponse(output.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = 'attachment; filename="entry-passes.zip"'
     return response
@@ -710,7 +712,8 @@ def batch_detail(request, kind, pk):
     content = io.BytesIO()
     with zipfile.ZipFile(content, "w", zipfile.ZIP_DEFLATED) as archive:
         for record in records:
-            archive.write(render_card(kind, record), services.code_for(record) + ".png")
+            card_file = render_card(kind, record)
+            archive.write(card_file, services.code_for(record) + card_file.suffix)
     response = HttpResponse(content.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{kind.lower()}-batch-{pk}.zip"'
     return response

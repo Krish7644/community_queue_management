@@ -170,7 +170,7 @@ def _community(record, token):
     return canvas.crop((40, 40, 1082, 1362))
 
 
-def render_card(kind, record, thumb=False):
+def render_card(kind, record, thumb=False, as_png=False):
     event, _ = EventSettings.objects.get_or_create(pk=1)
     if kind == "MEMBER":
         qr = QrToken.objects.filter(member=record, status="ACTIVE").first()
@@ -212,16 +212,21 @@ def render_card(kind, record, thumb=False):
     digest = hashlib.sha256(json.dumps(payload, default=str, sort_keys=True).encode()).hexdigest()
     directory = settings.MEDIA_ROOT / "private-cards"
     directory.mkdir(parents=True, exist_ok=True)
-    output = directory / (digest + ".png")
-    if not output.exists():
+    output_webp = directory / (digest + ".webp")
+    output_png = directory / (digest + ".png")
+
+    if not output_webp.exists() or (as_png and not output_png.exists()):
         data = {"token": token, "code": code, "recipient": recipient, "name": name, "authority": authority}
         image = _community(record, token) if kind == "MEMBER" else _volunteer(data) if volunteer else _hod(data, event, vvip)
-        image.save(output, "PNG", compress_level=6)
+        if not output_webp.exists():
+            image.save(output_webp, "WEBP", quality=88)
+        if as_png and not output_png.exists():
+            image.save(output_png, "PNG", compress_level=6)
 
     if thumb:
         thumb_output = directory / (digest + "-thumb.webp")
         if not thumb_output.exists():
-            image = Image.open(output)
+            image = Image.open(output_webp)
             w, h = image.size
             tw = 320
             th = int(h * (tw / w))
@@ -229,4 +234,4 @@ def render_card(kind, record, thumb=False):
             thumb_img.save(thumb_output, "WEBP", quality=85)
         return thumb_output
 
-    return output
+    return output_png if as_png else output_webp

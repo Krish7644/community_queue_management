@@ -109,7 +109,7 @@ export function PassGallery({kind='',shared=false,authorityHome=false,immediate=
  async function share(row){
   try{
    let sent=false
-   if(navigator.share&&navigator.canShare){const response=await fetch(row.card_url);if(!response.ok)throw Error('Pass image is unavailable.');const file=new File([await response.blob()],row.code+'-pass.png',{type:'image/png'});if(navigator.canShare({files:[file]})){await navigator.share({title:'Janmashtami Entry Pass '+row.code,text:options?.share_message||'',files:[file]});sent=true}}
+   if(navigator.share&&navigator.canShare){const response=await fetch(row.card_url);if(!response.ok)throw Error('Pass image is unavailable.');const blob=await response.blob(),ext=blob.type==='image/webp'?'.webp':'.png',file=new File([blob],row.code+'-pass'+ext,{type:blob.type||'image/webp'});if(navigator.canShare({files:[file]})){await navigator.share({title:'Janmashtami Entry Pass '+row.code,text:options?.share_message||'',files:[file]});sent=true}}
    if(!sent&&navigator.share){await navigator.share({title:'Janmashtami Entry Pass '+row.code,text:options?.share_message||'',url:location.origin+row.card_url+'?download=1'});sent=true}
    if(!sent){notify('Share sheet is not available in this browser. Open the portal on mobile Chrome, Edge or Safari and tap Share again.',true);return}
    open('Pass shared',<ShareConfirmation onConfirm={async()=>{await api('passes/'+row.kind+'/'+row.id+'/',{method:'POST',body:{}});saved()}}/>)
@@ -119,7 +119,7 @@ export function PassGallery({kind='',shared=false,authorityHome=false,immediate=
   try{
    if(!marked.length)return
    if(!navigator.share||!navigator.canShare){notify('This device cannot share multiple pass images at once. Share the cards individually.',true);return}
-   const files=await Promise.all(marked.map(async row=>{const response=await fetch(row.card_url);if(!response.ok)throw Error('A selected pass image is unavailable.');return new File([await response.blob()],row.code+'-pass.png',{type:'image/png'})}))
+   const files=await Promise.all(marked.map(async row=>{const response=await fetch(row.card_url);if(!response.ok)throw Error('A selected pass image is unavailable.');const blob=await response.blob(),ext=blob.type==='image/webp'?'.webp':'.png';return new File([blob],row.code+'-pass'+ext,{type:blob.type||'image/webp'})}))
    if(!navigator.canShare({files})){notify('This device cannot share multiple pass images at once. Share the cards individually.',true);return}
    await navigator.share({title:'Janmashtami Entry Passes',text:options?.share_message||'',files})
    open('Passes shared',<ShareConfirmation count={marked.length} onConfirm={async()=>{await api('passes/share-bulk/',{method:'POST',body:{passes:marked.map(row=>({kind:row.kind,id:row.id}))}});saved()}}/>)
