@@ -208,8 +208,6 @@ def render_card(kind, record):
                record.name if kind == "MEMBER" else None,
                record.devotee_id if kind == "MEMBER" else None,
                record.authority_id if kind == "MEMBER" else None,
-               [record.admin_id, record.authority.account_type if record.authority else None,
-                record.authority.profile_type if record.authority else None] if kind == "MEMBER" else None,
                str(photo_path), photo_path.stat().st_mtime_ns if photo_path else None, assets]
     digest = hashlib.sha256(json.dumps(payload, default=str, sort_keys=True).encode()).hexdigest()
     directory = settings.MEDIA_ROOT / "private-cards"

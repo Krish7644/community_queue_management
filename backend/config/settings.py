@@ -1,34 +1,86 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
-SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-fallback-key-for-local-community-scanner")
 DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver"]
+render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if render_host:
+    ALLOWED_HOSTS.append(render_host)
+if os.getenv("ALLOWED_HOSTS"):
+    ALLOWED_HOSTS.extend([h.strip() for h in os.getenv("ALLOWED_HOSTS").split(",") if h.strip()])
+
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "rest_framework", "portal",
 ]
+
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware", "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware", "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware", "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 ROOT_URLCONF = "config.urls"
 TEMPLATES = [{"BACKEND": "django.template.backends.django.DjangoTemplates", "DIRS": [], "APP_DIRS": True,
               "OPTIONS": {"context_processors": ["django.template.context_processors.request", "django.contrib.auth.context_processors.auth", "django.contrib.messages.context_processors.messages"]}}]
 WSGI_APPLICATION = "config.wsgi.application"
-DATABASES = {"default": {
-    "ENGINE": "django.db.backends.mysql", "NAME": os.getenv("DB_NAME", "community_scanner_dev"),
-    "USER": os.environ["DB_USER"], "PASSWORD": os.environ["DB_PASSWORD"],
-    "HOST": "127.0.0.1", "PORT": "3306", "CONN_MAX_AGE": 0,
-    "OPTIONS": {"charset": "utf8mb4", "init_command": "SET sql_mode='STRICT_TRANS_TABLES'"},
-}}
+
+# Database: Automatically use PostgreSQL if DATABASE_URL is provided (e.g. on Render), otherwise MySQL
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    try:
+        import dj_database_url
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+    except ImportError:
+        parsed = urlparse(DATABASE_URL)
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": parsed.path.lstrip("/"),
+                "USER": parsed.username,
+                "PASSWORD": parsed.password,
+                "HOST": parsed.hostname,
+                "PORT": parsed.port or 5432,
+                "CONN_MAX_AGE": 600,
+            }
+        }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.getenv("DB_NAME", "community_scanner_dev"),
+            "USER": os.getenv("DB_USER", "root"),
+            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+            "PORT": os.getenv("DB_PORT", "3306"),
+            "CONN_MAX_AGE": 60,
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
+
 AUTH_USER_MODEL = "portal.User"
 AUTHENTICATION_BACKENDS = ["portal.authentication.PortalBackend"]
 PASSWORD_HASHERS = [
@@ -49,14 +101,22 @@ LANGUAGE_CODE = "en-in"
 TIME_ZONE = "Asia/Kolkata"
 # Legacy dates are local wall-clock values; keep them unchanged during migration.
 USE_TZ = False
+
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+if render_host:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_host}")
+if os.getenv("CSRF_TRUSTED_ORIGINS"):
+    CSRF_TRUSTED_ORIGINS.extend([o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS").split(",") if o.strip()])
+
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 8 * 60 * 60
 X_FRAME_OPTIONS = "DENY"
