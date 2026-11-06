@@ -84,6 +84,7 @@ def describe(kind, record):
         "single_available": (personal or (record.single_entry_enabled and (limit == 0 or used < limit))) if kind == "MEMBER" else True,
         "family_used_at": record.family_entry_used_at if combined else None,
         "card_url": f"/api/passes/{kind}/{record.pk}/card/",
+        "thumb_url": f"/api/passes/{kind}/{record.pk}/card/?thumb=1",
     }
 
 

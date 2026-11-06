@@ -409,9 +409,14 @@ def card(request, kind, pk):
     record = services.owned_passes(request.user, kind).filter(pk=pk).first()
     if not record:
         raise NotFound()
-    path = render_card(kind, record)
-    response = FileResponse(path.open("rb"), content_type="image/png", as_attachment=request.query_params.get("download") == "1", filename=services.code_for(record) + ".png")
-    response["Cache-Control"] = "private, no-store"
+    thumb = request.query_params.get("thumb") == "1"
+    path = render_card(kind, record, thumb=thumb)
+    download = request.query_params.get("download") == "1"
+    ctype = "image/webp" if path.suffix == ".webp" else "image/png"
+    filename = services.code_for(record) + path.suffix
+    response = FileResponse(path.open("rb"), content_type=ctype, as_attachment=download, filename=filename)
+    response["Cache-Control"] = "private, max-age=86400, stale-while-revalidate=3600"
+    response["ETag"] = f'"{path.stem}"'
     return response
 
 

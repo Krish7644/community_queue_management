@@ -170,7 +170,7 @@ def _community(record, token):
     return canvas.crop((40, 40, 1082, 1362))
 
 
-def render_card(kind, record):
+def render_card(kind, record, thumb=False):
     event, _ = EventSettings.objects.get_or_create(pk=1)
     if kind == "MEMBER":
         qr = QrToken.objects.filter(member=record, status="ACTIVE").first()
@@ -217,4 +217,16 @@ def render_card(kind, record):
         data = {"token": token, "code": code, "recipient": recipient, "name": name, "authority": authority}
         image = _community(record, token) if kind == "MEMBER" else _volunteer(data) if volunteer else _hod(data, event, vvip)
         image.save(output, "PNG", compress_level=6)
+
+    if thumb:
+        thumb_output = directory / (digest + "-thumb.webp")
+        if not thumb_output.exists():
+            image = Image.open(output)
+            w, h = image.size
+            tw = 320
+            th = int(h * (tw / w))
+            thumb_img = image.resize((tw, th), Image.Resampling.LANCZOS)
+            thumb_img.save(thumb_output, "WEBP", quality=85)
+        return thumb_output
+
     return output
